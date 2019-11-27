@@ -3,6 +3,8 @@ package main
 import (
 	"strconv"
 	"strings"
+	"os"
+	"fmt"
 	"os/exec"
 	"time"
 	"golang.org/x/sys/unix"
@@ -12,6 +14,27 @@ import (
 
 
 func GetHost() {
+
+}
+
+
+func GetTerminal() {
+}
+
+func GetShell() {
+	var (
+		shell string
+		cmd *exec.Cmd
+	)
+
+	shell = os.Getenv("SHELL")
+	cmd = exec.Command(shell, "--version")
+	temp, _ := cmd.Output()
+	output := string(temp)
+
+	fmt.Println(output)
+
+
 
 }
 
@@ -33,6 +56,9 @@ func GetUptime() map[string]int{
         return uptime
 }
 
+func GetPackage() {
+
+}
 
 func GetPackages() []packages{
         var (

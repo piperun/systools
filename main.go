@@ -78,6 +78,8 @@ func main() {
         fmt.Println(system.Kernel)
         fmt.Println(system.Uptime)
 	fmt.Println(system.Packages)
+	GetShell()
+	GetTerminal()
 }
 
 

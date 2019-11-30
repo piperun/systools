@@ -6,5 +6,5 @@ go:
 os:
   - linux
   - osx
-  - bsd
+  - freebsd
   - windows

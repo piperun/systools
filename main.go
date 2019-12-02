@@ -15,7 +15,7 @@ type System struct {
         Kernel string
         Uptime map[string]int
         Packages []packages
-        Shell string
+        Shell shell
         Terminal string
         CPU string
         GPU string
@@ -48,6 +48,12 @@ type packages struct {
         pkgmanager string
 }
 
+type shell struct {
+	name string
+	version string
+	path string
+}
+
 func getLSBVars() lsb {
         return lsb {
                 ID: "DISTRIB_ID",
@@ -73,13 +79,16 @@ func main() {
         system.Kernel = GetKernel()
         system.Uptime = GetUptime()
 	system.Packages = GetPackages()
+	system.Shell = GetShell()
+	system.Terminal = GetTerminal()
+
         fmt.Println(system.OS)
         fmt.Println(system.CPU)
         fmt.Println(system.Kernel)
         fmt.Println(system.Uptime)
 	fmt.Println(system.Packages)
-	GetShell()
-	GetTerminal()
+	fmt.Println(system.Terminal)
+	fmt.Println(system.Shell)
 }
 
 
@@ -88,7 +97,7 @@ func getSlice(filename string, str string, pattern string) string{
         file, err := os.Open(filename)
 
         if err != nil {
-                panic(err)
+                log.Fatal(err)
         }
         defer file.Close()
 

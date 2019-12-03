@@ -8,6 +8,7 @@ import (
 	"strings"
 	//"fmt"
 	"os"
+	"os/user"
 	"os/exec"
 	"time"
 	"golang.org/x/sys/unix"
@@ -16,12 +17,22 @@ import (
 )
 
 
-
-func GetModel() {
+func GetUser() *user.User {
+	user, _ := user.Current()
+	return user
 }
 
-func GetHost() {
+func GetHostname() string {
+	hostname, _ := os.Hostname()
+	return hostname
+}
 
+func GetModel() {
+
+}
+
+func GetUserHost() string{
+	return GetUser().Username + "@" + GetHostname()
 }
 
 func GetTerminal() string {
@@ -54,10 +65,6 @@ func GetUptime() map[string]int{
 	uptime["minutes"] = int(date.Minutes()) % 60
 	uptime["seconds"] = int(date.Seconds()) % 60
 	return uptime
-}
-
-func GetPackage() {
-
 }
 
 func GetPackages() []packages{

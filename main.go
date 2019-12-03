@@ -10,8 +10,9 @@ import (
 )
 
 type System struct {
+	UserHost string
         OS string
-        Host string
+        Model string
         Kernel string
         Uptime map[string]int
         Packages []packages
@@ -21,7 +22,6 @@ type System struct {
         GPU string
         Memory string
 }
-
 
 type lsb struct {
         ID string
@@ -40,8 +40,6 @@ type file struct {
         filename string
         exists bool
 }
-
-
 
 type packages struct {
         num int
@@ -81,6 +79,7 @@ func main() {
 	system.Packages = GetPackages()
 	system.Shell = GetShell()
 	system.Terminal = GetTerminal()
+	system.UserHost = GetUserHost()
 
         fmt.Println(system.OS)
         fmt.Println(system.CPU)
@@ -89,6 +88,8 @@ func main() {
 	fmt.Println(system.Packages)
 	fmt.Println(system.Terminal)
 	fmt.Println(system.Shell)
+	fmt.Println(system.UserHost)
+
 }
 
 

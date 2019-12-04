@@ -12,11 +12,11 @@ import (
 type System struct {
 	UserHost string
         OS string
-        Model string
+        PCModel Model
         Kernel string
         Uptime map[string]int
         Packages []packages
-        Shell shell
+        Shell Shell
         Terminal string
         CPU string
         GPU string
@@ -46,10 +46,15 @@ type packages struct {
         pkgmanager string
 }
 
-type shell struct {
+type Shell struct {
 	name string
 	version string
 	path string
+}
+
+type Model struct {
+	Name string
+	Version string
 }
 
 func getLSBVars() lsb {
@@ -80,6 +85,7 @@ func main() {
 	system.Shell = GetShell()
 	system.Terminal = GetTerminal()
 	system.UserHost = GetUserHost()
+	system.PCModel = GetModel()
 
         fmt.Println(system.OS)
         fmt.Println(system.CPU)
@@ -89,6 +95,7 @@ func main() {
 	fmt.Println(system.Terminal)
 	fmt.Println(system.Shell)
 	fmt.Println(system.UserHost)
+	fmt.Println(system.PCModel)
 
 }
 

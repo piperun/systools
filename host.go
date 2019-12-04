@@ -27,7 +27,11 @@ func GetHostname() string {
 	return hostname
 }
 
-func GetModel() {
+func GetModel() Model{
+	var model Model
+	model.grabModel()
+	model.removeDummyinfo()
+	return model
 
 }
 
@@ -39,9 +43,9 @@ func GetTerminal() string {
 	return C.GoString(C.ttyname(C.int(unix.Stdin)))
 }
 
-func GetShell() shell{
+func GetShell() Shell{
 	var (
-		usershell shell
+		usershell Shell
 	)
 	usershell.grabShell()
 	usershell.grabShellVersion()
@@ -143,7 +147,7 @@ func getPackagemanager(pkgmanager map[string]string) []whereis.File{
 
 // Version 1
 
-func (s *shell) grabShell() {
+func (s *Shell) grabShell() {
 	var (
 		shellexec, shellpath string
 		prefixes, shellenvs []string
@@ -173,7 +177,7 @@ func (s *shell) grabShell() {
 
 }
 
-func (s *shell) grabShellVersion() {
+func (s *Shell) grabShellVersion() {
 
 	var (
 		cmd *exec.Cmd
@@ -189,5 +193,77 @@ func (s *shell) grabShellVersion() {
 	cmd = exec.Command(s.name, shellcmd["base"], shellcmd[s.name])
 	temp, _ := cmd.Output()
 	s.version = string(temp)
+
+}
+
+func (m *Model) grabModel() {
+	var (
+		modelfiles []string
+	)
+
+	modelfiles = []string{
+		"/sys/devices/virtual/dmi/id/product_name",
+		"/sys/devices/virtual/dmi/id/product_version",
+		"/sys/firmware/devicetree/base/model",
+		"/tmp/sysinfo/model",
+	}
+
+	for i := 0; i < len(modelfiles); i += 1 {
+		if !checkFile(modelfiles[i]) {
+			modelfiles[len(modelfiles)-1], modelfiles[i] = modelfiles[i], modelfiles[len(modelfiles)-1]
+			modelfiles = modelfiles[:len(modelfiles)-1]
+
+		}
+		switch modelfiles[i] {
+		case "/sys/devices/virtual/dmi/id/product_name":
+			m.Name = getFile(modelfiles[i])[0]
+		case "/sys/devices/virtual/dmi/id/product_version":
+			m.Version = getFile(modelfiles[i])[0]
+		case "/sys/firmware/devicetree/base/model":
+			// This is for ARM and I don't have an ARM device.
+		case "/tmp/sysinfo/model":
+		default:
+			m.Name = "NO MODEL NAME FOUND"
+			m.Version = "NO MODEL VERSION FOUND"
+
+		}
+	}
+}
+
+// Used to remove any "dummy"/vm model info
+func (m *Model) removeDummyinfo() {
+	var (
+		dummyinfo []string
+	)
+
+	dummyinfo = []string{
+		"To be filled by O.E.M.",
+		"To Be Filled*",
+		"OEM*",
+		"Not Applicable",
+		"System Product Name",
+		"System Version",
+		"Undefined",
+		"Default string",
+		"Not Specified",
+		"Type1ProductConfigId",
+		"INVALID",
+		"�",
+	}
+
+	if strings.Contains(m.Name, "Standard PC") {
+		m.Name = strings.Replace(m.Name, "Standard PC", "KVM/QEMU", -1)
+	} else if strings.Contains(m.Name, "OpenBSD") {
+		m.Name = strings.Replace(m.Name, "Standard PC", "vmm", -1)
+	}
+
+
+	for i := 0; i < len(dummyinfo); i += 1 {
+		if strings.Contains(m.Name, dummyinfo[i]) {
+			strings.Replace(m.Name, dummyinfo[i], "", -1)
+		}
+
+	}
+
 
 }

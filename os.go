@@ -10,8 +10,10 @@ import (
 
 
 func GetKernel() string{
-        var uname unix.Utsname
-        var version = ""
+        var (
+		uname unix.Utsname
+		version string
+	)
         unix.Uname(&uname)
         for i := 0; i < len(uname.Release); i += 1 {
                 version += string(uname.Release[i])
@@ -20,10 +22,15 @@ func GetKernel() string{
 }
 
 func GetDistro() string{
-        const LSB = "/etc/lsb-release"
-        const OSREL = "/etc/os-release"
-        var distro string
-        var LSBvars = getLSBVars()
+        const (
+		LSB = "/etc/lsb-release"
+		OSREL = "/etc/os-release"
+	)
+
+        var (
+		distro string
+		LSBvars = getLSBVars()
+	)
 
 
         switch os := runtime.GOOS; os {

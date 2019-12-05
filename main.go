@@ -33,7 +33,6 @@ type lsb struct {
 type procvars struct {
         CPU string
         Kernel string
-
 }
 
 type file struct {
@@ -101,7 +100,7 @@ func main() {
 
 
 func getSlice(filename string, str string, pattern string) string{
-        var distro []string
+        var slice []string
         file, err := os.Open(filename)
 
         if err != nil {
@@ -112,16 +111,15 @@ func getSlice(filename string, str string, pattern string) string{
         scanner := bufio.NewScanner(file)
         for scanner.Scan() {
                 if strings.Contains(scanner.Text(), str) {
-                        distro = strings.SplitAfter(scanner.Text(), pattern)
+                        slice = strings.SplitAfter(scanner.Text(), pattern)
                         break
                 }
         }
-        if len(distro) != 0 {
-                return distro[1]
+        if len(slice) != 0 {
+                return slice[1]
         } else {
                 return "NULL - ERROR"
         }
-
 }
 
 func getFile(filename string) []string{

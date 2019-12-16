@@ -6,7 +6,43 @@ import (
 	"strconv"
 	"runtime"
 	"log"
+	//"golang.org/x/sys/unix"
 )
+
+
+
+// For now we won't be using Sysinfo_t, but might use it as a backup 
+func GetMemory() (map[string]*Storage, map[string]uint64){
+	const procfile = "/proc/meminfo"
+	var (
+		//sysinfo unix.Sysinfo_t
+		meminfo = map[string]uint64{
+			"MemTotal":0,
+			"MemFree":0,
+			"MemAvailable":0,
+			"Cached":0,
+		}
+
+		memstats = map[string]*Storage{
+			"Used": &Storage{},
+		}
+	)
+	assignMeminfo(meminfo, procfile)
+	for k, v := range meminfo {
+		if strings.Contains(k, "Mem") {
+			k = RemovePrefix(k, "Mem")
+		} else if strings.Contains("k", "Cache") {
+			k = RemoveSuffix(k, "d")
+		}
+		memstats[k] = &Storage{}
+		memstats[k].Conversion(v)
+	}
+	memstats["Used"].Conversion(meminfo["MemTotal"] - meminfo["MemAvailable"])
+
+	return memstats, meminfo
+	//unix.Sysinfo(&sysinfo)
+
+}
 
 
 func GetCPU() string{
@@ -14,18 +50,17 @@ func GetCPU() string{
 		model = "model name"
 		cores = "core id"
 		hertz = "cpu MHz"
-		syscpufile = "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"
-		cpuinfo = "/proc/cpuinfo"
 		minlen = 5
 	)
 	var (
-		cpufiles [2]string
 		cpu string
 		procvars = procLocations()
-	)
 
-	cpufiles[0] = "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"
-	cpufiles[1] = "/proc/cpuinfo"
+		cpufiles = [2]string {
+			"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq",
+			"/proc/cpuinfo",
+		}
+	)
 
 	re := regexp.MustCompile(`\@\s\d*\.\d*[G-M]Hz`)
 
@@ -44,13 +79,12 @@ func GetCPU() string{
 
 	*/
 
-	cpu = getSlice(procvars.CPU, model, ": ")
+	cpu = GetSlice(procvars.CPU, model, ": ")
 	match :=  re.FindStringSubmatch(cpu)
 
 	if match != nil {
 		cpu = strings.Split(cpu, match[0])[0]
 	}
-
 	cpu += "(" + strconv.Itoa(runtime.NumCPU()) + ")"
 
 	for i := 0; i < len(cpufiles); i += 1 {
@@ -62,20 +96,18 @@ func GetCPU() string{
 				cpu += " @ " + tmp + "GHz"
 
 			}
-
 		}
 	}
-
-
-
 	return cpu
 }
 
 
 
 func converttoGHz(hertz string) string{
-	var floatHz float64
-	var err error
+	var (
+		floatHz float64
+		err error
+	)
 
 	floatHz, err = strconv.ParseFloat(hertz, 64)
 	if strings.Contains(hertz, "."){
@@ -98,13 +130,26 @@ func parseCPUFiles(file string, pattern ...string) string{
 		hertz = getFile(f)[0]
 		return converttoGHz(hertz)
 	case "/proc/cpuinfo":
-		hertz = getSlice(f, pattern[0], ": ")
+		hertz = GetSlice(f, pattern[0], ": ")
 		return converttoGHz(hertz)
 
 
 	default:
 		return ""
 	}
+}
+
+func assignMeminfo(meminfo map[string]uint64, procfile string) {
+	var err error
+	for k, _ := range meminfo {
+		//uint not int
+		meminfo[k], err = strconv.ParseUint(strings.Replace(RemoveSuffix(GetSlice(procfile, k, ":"), "kB"), " ", "", -1), 10, 0)
+		meminfo[k] *= 1024
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 }
 
 

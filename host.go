@@ -71,13 +71,12 @@ func GetUptime() map[string]int{
 	return uptime
 }
 
-func GetPackages() []packages{
+func GetPackages() []Packages{
 	var (
 		pkgmanager = make(map[string]string)
 		f []whereis.File
-		pkgs []packages
+		pkgs []Packages
 	)
-
 
 	// Maybe switch to slice since map is a bit redundant
 	pkgmanager["kiss"] = "kiss l"
@@ -107,9 +106,9 @@ func GetPackages() []packages{
 }
 
 
-func getPackageNum(pkgmanager map[string]string, file whereis.File) packages{
+func getPackageNum(pkgmanager map[string]string, file whereis.File) Packages{
 	var (
-		pkgs packages
+		pkgs Packages
 		cmd *exec.Cmd
 		output []byte
 		cmdline []string

@@ -2,47 +2,69 @@ package main
 
 
 import (
-        "os"
-        "fmt"
-        "bufio"
-        "strings"
-        "log"
+	"os"
+	"fmt"
+	"bufio"
+	"log"
 )
+
+type Systemd interface {
+	Init()
+	GetCPU()
+	GetDistro()
+	GetGPU()
+	GetKernel()
+	GetMemory()
+	GetModel() Model
+	GetPackages()[]Packages
+	GetShell()
+	GetTerminal()
+	GetUptime()
+	GetUserHost()
+
+	// Optional
+	GetHDD()
+	GetNetwork()
+	// Misc
+	GetFont()
+	GetGTKFont()
+	GetDS() // Display Server
+}
 
 type System struct {
 	UserHost string
-        OS string
-        PCModel Model
-        Kernel string
-        Uptime map[string]int
-        Packages []packages
-        Shell Shell
-        Terminal string
-        CPU string
-        GPU string
-        Memory string
+	OS string
+	PCModel Model
+	Kernel string
+	Uptime map[string]int
+	Packages []Packages
+	Shell Shell
+	Terminal string
+	CPU string
+	GPU string
+	Memory map[string]*Storage
 }
 
 type lsb struct {
-        ID string
-        Release string
-        Codename string
-        Description string
+	ID string
+	Release string
+	Codename string
+	Description string
 }
 
 type procvars struct {
-        CPU string
-        Kernel string
+	CPU string
+	Kernel string
 }
 
 type file struct {
-        filename string
-        exists bool
+	filename string
+	exists bool
 }
 
-type packages struct {
-        num int
-        pkgmanager string
+type Packages struct {
+	num int
+	pkgmanager string
 }
 
 type Shell struct {
@@ -56,97 +78,80 @@ type Model struct {
 	Version string
 }
 
-func getLSBVars() lsb {
-        return lsb {
-                ID: "DISTRIB_ID",
-                Release: "DISTRIB_RELEASE",
-                Codename: "DISTRIB_CODENAME",
-                Description: "DISTRIB_DESCRIPTION",
-        }
+type Storage struct {
+	Size float64
+	Type string
 }
 
+func getLSBVars() lsb {
+	return lsb {
+		ID: "DISTRIB_ID",
+		Release: "DISTRIB_RELEASE",
+		Codename: "DISTRIB_CODENAME",
+		Description: "DISTRIB_DESCRIPTION",
+	}
+}
 
 func procLocations() procvars{
-        return procvars {
-                Kernel: "/proc/sys/kernel/osrelease",
-                CPU: "/proc/cpuinfo",
-        }
+	return procvars {
+		Kernel: "/proc/sys/kernel/osrelease",
+		CPU: "/proc/cpuinfo",
+	}
 }
 
 
 func main() {
-        var system System
-        system.OS = GetDistro()
-        system.CPU = GetCPU()
-        system.Kernel = GetKernel()
-        system.Uptime = GetUptime()
+	var system System
+	system.OS = GetDistro()
+	system.CPU = GetCPU()
+	system.Kernel = GetKernel()
+	system.Uptime = GetUptime()
 	system.Packages = GetPackages()
 	system.Shell = GetShell()
 	system.Terminal = GetTerminal()
 	system.UserHost = GetUserHost()
 	system.PCModel = GetModel()
+	system.Memory, _ = GetMemory()
 
-        fmt.Println(system.OS)
-        fmt.Println(system.CPU)
-        fmt.Println(system.Kernel)
-        fmt.Println(system.Uptime)
+	fmt.Println(system.OS)
+	fmt.Println(system.CPU)
+	fmt.Println(system.Kernel)
+	fmt.Println(system.Uptime)
 	fmt.Println(system.Packages)
 	fmt.Println(system.Terminal)
 	fmt.Println(system.Shell)
 	fmt.Println(system.UserHost)
 	fmt.Println(system.PCModel)
+	fmt.Println(system.Memory["Used"])
 
 }
 
-
-func getSlice(filename string, str string, pattern string) string{
-        var slice []string
-        file, err := os.Open(filename)
-
-        if err != nil {
-                log.Fatal(err)
-        }
-        defer file.Close()
-
-        scanner := bufio.NewScanner(file)
-        for scanner.Scan() {
-                if strings.Contains(scanner.Text(), str) {
-                        slice = strings.SplitAfter(scanner.Text(), pattern)
-                        break
-                }
-        }
-        if len(slice) != 0 {
-                return slice[1]
-        } else {
-                return "NULL - ERROR"
-        }
-}
 
 func getFile(filename string) []string{
-        var content []string
+	var content []string
 
-        file, err := os.Open(filename)
-        if err != nil {
-                log.Fatal(err)
-        }
-        defer file.Close()
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
 
-        scanner := bufio.NewScanner(file)
-        for scanner.Scan() {
-                content = append(content, scanner.Text())
-        }
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		content = append(content, scanner.Text())
+	}
 
-        if err := scanner.Err(); err != nil {
-                log.Fatal(err)
-        }
-        return content
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return content
 }
 
 func checkFile(filename string) bool{
-        if _, err := os.Stat(filename); os.IsNotExist(err) {
-                return false
-        }
-        return true
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 

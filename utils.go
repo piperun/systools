@@ -72,6 +72,17 @@ func GetSlice(filename string, str string, pattern string) string{
 	if len(slice) != 0 {
 		return slice[1]
 	} else {
-		return "NULL - ERROR"
+		log.Print("Error in ", filename, " could not find ", str, " with pattern ", pattern)
 	}
+	return ""
 }
+
+
+func CheckFile(filename string) bool{
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+

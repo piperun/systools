@@ -16,6 +16,7 @@ type Systemd interface {
 	GetKernel()
 	GetMemory()
 	GetModel() Model
+	GetOS()
 	GetPackages()[]Packages
 	GetShell()
 	GetTerminal()
@@ -32,8 +33,9 @@ type Systemd interface {
 }
 
 type System struct {
-	UserHost string
 	OS string
+	UserHost string
+	Distro string
 	PCModel Model
 	Kernel string
 	Uptime map[string]int
@@ -50,11 +52,6 @@ type lsb struct {
 	Release string
 	Codename string
 	Description string
-}
-
-type procvars struct {
-	CPU string
-	Kernel string
 }
 
 type file struct {
@@ -92,17 +89,10 @@ func getLSBVars() lsb {
 	}
 }
 
-func procLocations() procvars{
-	return procvars {
-		Kernel: "/proc/sys/kernel/osrelease",
-		CPU: "/proc/cpuinfo",
-	}
-}
-
 
 func main() {
 	var system System
-	system.OS = GetDistro()
+	system.Distro = GetDistro()
 	system.CPU = GetCPU()
 	system.Kernel = GetKernel()
 	system.Uptime = GetUptime()
@@ -113,7 +103,7 @@ func main() {
 	system.PCModel = GetModel()
 	system.Memory, _ = GetMemory()
 
-	fmt.Println(system.OS)
+	fmt.Println(system.Distro)
 	fmt.Println(system.CPU)
 	fmt.Println(system.Kernel)
 	fmt.Println(system.Uptime)
@@ -145,13 +135,6 @@ func getFile(filename string) []string{
 		log.Fatal(err)
 	}
 	return content
-}
-
-func checkFile(filename string) bool{
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 

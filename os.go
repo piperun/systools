@@ -6,13 +6,16 @@ import (
 )
 
 
+func GetOS() string {
+	return runtime.GOOS
+}
 
-
-func GetKernel() string{
+func GetKernel() string {
 	var (
 		uname unix.Utsname
 		version string
 	)
+
 	unix.Uname(&uname)
 	for i := 0; i < len(uname.Release); i += 1 {
 		version += string(uname.Release[i])
@@ -20,23 +23,34 @@ func GetKernel() string{
 	return version
 }
 
-func GetDistro() string{
-	const (
-		LSB = "/etc/lsb-release"
-		OSREL = "/etc/os-release"
+func GetDistro() string {
+	const(
+		osrelvar = "PRETTY_NAME"
+		lsbvar = "DISTRIB_DESCRIPTION"
+		pattern = "="
 	)
-
 	var (
 		distro string
-		LSBvars = getLSBVars()
+		//LSBvars = getLSBVars()
+		releaseFiles = []string {
+			"/etc/os-release",
+			"/etc/lsb-release",
+			"/etc/bedrock-release",
+		}
 	)
-
-
-	switch os := runtime.GOOS; os {
-	case "linux":
-		distro = GetSlice(LSB, LSBvars.Description, "=")
+	for i := 0; i < len(releaseFiles); i += 1 {
+		if CheckFile(releaseFiles[i]) {
+			switch releaseFiles[i] {
+			case "/etc/os-release":
+				distro = GetSlice(releaseFiles[i], osrelvar, "=")
+			case "/etc/lsb-release":
+				distro = GetSlice(releaseFiles[i], lsbvar, "=")
+			}
+			break
+		}
 	}
 	return distro
+
 }
 
 

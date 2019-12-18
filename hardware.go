@@ -41,7 +41,6 @@ func GetMemory() (map[string]*Storage, map[string]uint64){
 
 	return memstats, meminfo
 	//unix.Sysinfo(&sysinfo)
-
 }
 
 
@@ -51,14 +50,13 @@ func GetCPU() string{
 		cores = "core id"
 		hertz = "cpu MHz"
 		minlen = 5
+		cpu_proc = "/proc/cpuinfo"
 	)
 	var (
 		cpu string
-		procvars = procLocations()
-
 		cpufiles = [2]string {
 			"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq",
-			"/proc/cpuinfo",
+			cpu_proc,
 		}
 	)
 
@@ -79,7 +77,7 @@ func GetCPU() string{
 
 	*/
 
-	cpu = GetSlice(procvars.CPU, model, ": ")
+	cpu = GetSlice(cpu_proc, model, ": ")
 	match :=  re.FindStringSubmatch(cpu)
 
 	if match != nil {
@@ -88,7 +86,7 @@ func GetCPU() string{
 	cpu += "(" + strconv.Itoa(runtime.NumCPU()) + ")"
 
 	for i := 0; i < len(cpufiles); i += 1 {
-		if checkFile(cpufiles[i]) {
+		if CheckFile(cpufiles[i]) {
 			tmp := parseCPUFiles(cpufiles[i], hertz)
 			if len(tmp) > minlen {
 				cpu += " @ " + tmp[0:minlen] + "GHz"

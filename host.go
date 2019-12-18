@@ -6,14 +6,13 @@ import "C"
 import (
 	"strconv"
 	"strings"
-	//"fmt"
 	"os"
 	"os/user"
 	"os/exec"
 	"time"
 	"golang.org/x/sys/unix"
 	"github.com/piperun/systools/whereis"
-
+	"log"
 )
 
 
@@ -183,15 +182,20 @@ func (s *Shell) grabShellVersion() {
 		shellcmd map[string]string = make(map[string]string)
 	)
 
-	shellcmd["bash"] = "printf %s $BASH_VERSION"
+	shellcmd["bash"] = "printf %s \"$BASH_VERSION\""
 	shellcmd["ksh"] = "printf %s \"$KSH_VERSION\""
 	shellcmd["tcsh"] = "$tcsh"
 	shellcmd["base"] = "-c"
 
+	if _, found := shellcmd[s.name]; found {
+		cmd = exec.Command(s.name, shellcmd["base"], shellcmd[s.name])
 
-	cmd = exec.Command(s.name, shellcmd["base"], shellcmd[s.name])
-	temp, _ := cmd.Output()
-	s.version = string(temp)
+		temp, err := cmd.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		s.version = string(temp)
+	}
 
 }
 
@@ -208,7 +212,7 @@ func (m *Model) grabModel() {
 	}
 
 	for i := 0; i < len(modelfiles); i += 1 {
-		if !checkFile(modelfiles[i]) {
+		if !CheckFile(modelfiles[i]) {
 			modelfiles[len(modelfiles)-1], modelfiles[i] = modelfiles[i], modelfiles[len(modelfiles)-1]
 			modelfiles = modelfiles[:len(modelfiles)-1]
 

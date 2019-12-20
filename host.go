@@ -10,9 +10,9 @@ import (
 	"os/user"
 	"os/exec"
 	"time"
+	"log"
 	"golang.org/x/sys/unix"
 	"github.com/piperun/systools/whereis"
-	"log"
 )
 
 
@@ -143,37 +143,59 @@ func getPackagemanager(pkgmanager map[string]string) []whereis.File{
 	return pkgmanagers
 }
 
+
+func getShellenv(shellpath *string) {
+	var (
+		shellenvs = []string {"SHELL", "_"}
+		currenv string
+	)
+
+	for _, env := range shellenvs {
+		currenv = os.Getenv(env)
+		if strings.Contains(currenv, "pwsh") && env == "_" {
+			*shellpath = currenv
+		} else if env != "_" {
+			*shellpath = currenv
+		}
+	}
+
+}
+
+func getShellpasswd(shellpath *string) {
+	const passwd = "/etc/passwd"
+	username := GetUser().Username
+	dbuser := GetFileline(passwd, username)
+	tmp := strings.Split(dbuser, ":")
+
+	if len(tmp) > 0 {
+		*shellpath = tmp[len(tmp) - 1]
+	}
+
+}
+
 // Version 1
 
 func (s *Shell) grabShell() {
 	var (
-		shellexec, shellpath string
-		prefixes, shellenvs []string
-
+		shellpath string
+		prefixes []string
+		shellfuncs = []func(*string){
+			getShellenv,
+			getShellpasswd,
+		}
 	)
 	prefixes = []string{"/bin/", "/snap/bin/"}
-	shellenvs = []string {"SHELL", "_"}
 
-
-	for _, env := range shellenvs {
-		shellpath = os.Getenv(env)
-		if shellpath != "" {
-			shellexec = RemovePrefix(shellpath, prefixes...)
-			break
+	for _,f := range shellfuncs {
+		if shellpath == "" {
+			f(&shellpath)
 		}
 	}
 
-	s.name = shellexec
+	s.name =  RemovePrefix(shellpath, prefixes...)
 	s.path = shellpath
-
-
-	/*
-	if len(shell) == 0
-	getshellfrompasswd(getuser()) -> return shell
-	*/
-
-
 }
+
 
 func (s *Shell) grabShellVersion() {
 
@@ -219,9 +241,9 @@ func (m *Model) grabModel() {
 		}
 		switch modelfiles[i] {
 		case "/sys/devices/virtual/dmi/id/product_name":
-			m.Name = getFile(modelfiles[i])[0]
+			m.Name = GetFile(modelfiles[i])[0]
 		case "/sys/devices/virtual/dmi/id/product_version":
-			m.Version = getFile(modelfiles[i])[0]
+			m.Version = GetFile(modelfiles[i])[0]
 		case "/sys/firmware/devicetree/base/model":
 			// This is for ARM and I don't have an ARM device.
 		case "/tmp/sysinfo/model":

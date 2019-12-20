@@ -2,10 +2,7 @@ package main
 
 
 import (
-	"os"
 	"fmt"
-	"bufio"
-	"log"
 )
 
 type Systemd interface {
@@ -115,26 +112,4 @@ func main() {
 	fmt.Println(system.Memory["Used"])
 
 }
-
-
-func getFile(filename string) []string{
-	var content []string
-
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		content = append(content, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return content
-}
-
 

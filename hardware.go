@@ -125,7 +125,7 @@ func parseCPUFiles(file string, pattern ...string) string{
 	var hertz = ""
 	switch f :=  file; f {
 	case "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq":
-		hertz = getFile(f)[0]
+		hertz = GetFile(f)[0]
 		return converttoGHz(hertz)
 	case "/proc/cpuinfo":
 		hertz = GetSlice(f, pattern[0], ": ")

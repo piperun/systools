@@ -53,6 +53,7 @@ func DigitCount(i uint64) uint64{
 	return count
 }
 
+// Badly worded, but returns the in between of what is infront of (str) and before (pattern)
 func GetSlice(filename string, str string, pattern string) string{
 	var slice []string
 	file, err := os.Open(filename)
@@ -77,6 +78,46 @@ func GetSlice(filename string, str string, pattern string) string{
 	return ""
 }
 
+
+func GetFileline(filename string, str string) string{
+	file, err := os.Open(filename)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), str) {
+			return scanner.Text()
+		}
+	}
+
+	return ""
+
+
+}
+
+func GetFile(filename string) []string{
+	var content []string
+
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		content = append(content, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return content
+}
 
 func CheckFile(filename string) bool{
 	if _, err := os.Stat(filename); os.IsNotExist(err) {

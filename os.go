@@ -23,7 +23,7 @@ func GetKernel() string {
 	return version
 }
 
-func GetDistro() string {
+func (linux *Linux) GetDistro() {
 	const(
 		osrelvar = "PRETTY_NAME"
 		lsbvar = "DISTRIB_DESCRIPTION"
@@ -31,7 +31,6 @@ func GetDistro() string {
 	)
 	var (
 		distro string
-		//LSBvars = getLSBVars()
 		releaseFiles = []string {
 			"/etc/os-release",
 			"/etc/lsb-release",
@@ -49,7 +48,7 @@ func GetDistro() string {
 			break
 		}
 	}
-	return distro
+	linux.Distro = distro
 
 }
 

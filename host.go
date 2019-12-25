@@ -54,7 +54,7 @@ func GetShell() Shell{
 
 
 
-func GetUptime() map[string]int{
+func (linux *Linux) GetUptime() {
 	var (
 		sysinfo unix.Sysinfo_t
 		date time.Duration
@@ -67,10 +67,10 @@ func GetUptime() map[string]int{
 	uptime["hours"] = int(date.Hours()) % 24
 	uptime["minutes"] = int(date.Minutes()) % 60
 	uptime["seconds"] = int(date.Seconds()) % 60
-	return uptime
+	linux.Uptime = uptime
 }
 
-func GetPackages() []Packages{
+func (linux *Linux) GetPackages() {
 	var (
 		pkgmanager = make(map[string]string)
 		f []whereis.File
@@ -100,7 +100,7 @@ func GetPackages() []Packages{
 		pkgs = append(pkgs, getPackageNum(pkgmanager, f[i]))
 	}
 
-	return pkgs
+	linux.Packages = pkgs
 
 }
 

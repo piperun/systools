@@ -44,7 +44,7 @@ func GetMemory() (map[string]*Storage, map[string]uint64){
 }
 
 
-func GetCPU() string{
+func (linux *Linux) GetCPU() {
 	const (
 		model = "model name"
 		cores = "core id"
@@ -96,7 +96,7 @@ func GetCPU() string{
 			}
 		}
 	}
-	return cpu
+	linux.CPU = cpu
 }
 
 

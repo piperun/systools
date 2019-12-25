@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type Systemd interface {
+type System interface {
 	Init()
 	GetCPU()
 	GetDistro()
@@ -29,7 +29,7 @@ type Systemd interface {
 	GetDS() // Display Server
 }
 
-type System struct {
+type SystemForm struct {
 	OS string
 	UserHost string
 	Distro string
@@ -43,6 +43,26 @@ type System struct {
 	GPU string
 	Memory map[string]*Storage
 }
+
+// These are struct used to store and link methods unique to the OS platform
+type BSD struct {
+	SystemForm
+}
+
+type Linux struct {
+	SystemForm
+}
+
+type Mac struct {
+	SystemForm
+}
+
+type Windows struct {
+	SystemForm
+}
+
+
+
 
 type lsb struct {
 	ID string
